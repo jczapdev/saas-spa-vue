@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Form, Head, usePage } from '@inertiajs/vue3';
-import { Link } from '@inertiajs/vue3';
+import { Form, Head, usePage } from '@/lib/inertia-spa';
+import { Link } from '@/lib/inertia-spa';
 import { computed } from 'vue';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import DeleteUser from '@/components/DeleteUser.vue';

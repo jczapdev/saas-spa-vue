@@ -13,7 +13,7 @@ declare module 'vite/client' {
     }
 }
 
-declare module '@inertiajs/core' {
+declare module '@/lib/inertia-spa' {
     export interface InertiaConfig {
         sharedPageProps: {
             name: string;

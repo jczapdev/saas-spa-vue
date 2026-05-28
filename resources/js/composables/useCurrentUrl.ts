@@ -1,41 +1,32 @@
-import type { InertiaLinkProps } from '@inertiajs/vue3';
-import { usePage } from '@inertiajs/vue3';
 import type { ComputedRef, DeepReadonly } from 'vue';
 import { computed, readonly } from 'vue';
+import { useRoute } from 'vue-router';
 import { toUrl } from '@/lib/utils';
 
 export type UseCurrentUrlReturn = {
     currentUrl: DeepReadonly<ComputedRef<string>>;
     isCurrentUrl: (
-        urlToCheck: NonNullable<InertiaLinkProps['href']>,
+        urlToCheck: string | { url?: string },
         currentUrl?: string,
         startsWith?: boolean,
     ) => boolean;
     isCurrentOrParentUrl: (
-        urlToCheck: NonNullable<InertiaLinkProps['href']>,
+        urlToCheck: string | { url?: string },
         currentUrl?: string,
     ) => boolean;
     whenCurrentUrl: <T, F = null>(
-        urlToCheck: NonNullable<InertiaLinkProps['href']>,
+        urlToCheck: string | { url?: string },
         ifTrue: T,
         ifFalse?: F,
     ) => T | F;
 };
 
-const page = usePage();
-const currentUrlReactive = computed(
-    () =>
-        new URL(
-            page.url,
-            typeof window !== 'undefined'
-                ? window.location.origin
-                : 'http://localhost',
-        ).pathname,
-);
+const route = useRoute();
+const currentUrlReactive = computed(() => route.path);
 
 export function useCurrentUrl(): UseCurrentUrlReturn {
     function isCurrentUrl(
-        urlToCheck: NonNullable<InertiaLinkProps['href']>,
+        urlToCheck: string | { url?: string },
         currentUrl?: string,
         startsWith: boolean = false,
     ) {
@@ -59,14 +50,14 @@ export function useCurrentUrl(): UseCurrentUrlReturn {
     }
 
     function isCurrentOrParentUrl(
-        urlToCheck: NonNullable<InertiaLinkProps['href']>,
+        urlToCheck: string | { url?: string },
         currentUrl?: string,
     ) {
         return isCurrentUrl(urlToCheck, currentUrl, true);
     }
 
     function whenCurrentUrl(
-        urlToCheck: NonNullable<InertiaLinkProps['href']>,
+        urlToCheck: string | { url?: string },
         ifTrue: any,
         ifFalse: any = null,
     ) {
@@ -80,3 +71,4 @@ export function useCurrentUrl(): UseCurrentUrlReturn {
         whenCurrentUrl,
     };
 }
+

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Form, Head } from '@inertiajs/vue3';
+import { Form, Head } from '@/lib/inertia-spa';
 import {
     index as confirmOptions,
     store as confirmStore,

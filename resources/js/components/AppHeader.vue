@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { Link, usePage } from '@inertiajs/vue3';
+import { useRouter } from 'vue-router';
 import { BookOpen, Folder, LayoutGrid, Menu, Search } from 'lucide-vue-next';
-import { computed } from 'vue';
 import AppLogo from '@/components/AppLogo.vue';
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import Breadcrumbs from '@/components/Breadcrumbs.vue';
@@ -32,10 +31,11 @@ import {
     TooltipTrigger,
 } from '@/components/ui/tooltip';
 import UserMenuContent from '@/components/UserMenuContent.vue';
+import { useAuth } from '@/composables/useUser';
 import { useCurrentUrl } from '@/composables/useCurrentUrl';
 import { getInitials } from '@/composables/useInitials';
 import { toUrl } from '@/lib/utils';
-import { dashboard } from '@/routes';
+const dashboard = () => '/dashboard';
 import type { BreadcrumbItem, NavItem } from '@/types';
 
 type Props = {
@@ -46,8 +46,8 @@ const props = withDefaults(defineProps<Props>(), {
     breadcrumbs: () => [],
 });
 
-const page = usePage();
-const auth = computed(() => page.props.auth);
+const router = useRouter();
+const auth = useAuth();
 const { isCurrentUrl, whenCurrentUrl } = useCurrentUrl();
 
 const activeItemStyles =
@@ -104,10 +104,10 @@ const rightNavItems: NavItem[] = [
                                 class="flex h-full flex-1 flex-col justify-between space-y-4 py-6"
                             >
                                 <nav class="-mx-3 space-y-1">
-                                    <Link
+                                    <router-link
                                         v-for="item in mainNavItems"
                                         :key="item.title"
-                                        :href="item.href"
+                                        :to="toUrl(item.href)"
                                         class="flex items-center gap-x-3 rounded-lg px-3 py-2 text-sm font-medium hover:bg-accent"
                                         :class="
                                             whenCurrentUrl(
@@ -122,7 +122,7 @@ const rightNavItems: NavItem[] = [
                                             class="h-5 w-5"
                                         />
                                         {{ item.title }}
-                                    </Link>
+                                    </router-link>
                                 </nav>
                                 <div class="flex flex-col space-y-4">
                                     <a
@@ -146,9 +146,9 @@ const rightNavItems: NavItem[] = [
                     </Sheet>
                 </div>
 
-                <Link :href="dashboard()" class="flex items-center gap-x-2">
+                <router-link :to="toUrl(dashboard())" class="flex items-center gap-x-2">
                     <AppLogo />
-                </Link>
+                </router-link>
 
                 <!-- Desktop Menu -->
                 <div class="hidden h-full lg:flex lg:flex-1">
@@ -161,7 +161,8 @@ const rightNavItems: NavItem[] = [
                                 :key="index"
                                 class="relative flex h-full items-center"
                             >
-                                <Link
+                                <router-link
+                                    :to="toUrl(item.href)"
                                     :class="[
                                         navigationMenuTriggerStyle(),
                                         whenCurrentUrl(
@@ -170,7 +171,6 @@ const rightNavItems: NavItem[] = [
                                         ),
                                         'h-9 cursor-pointer px-3',
                                     ]"
-                                    :href="item.href"
                                 >
                                     <component
                                         v-if="item.icon"
@@ -178,7 +178,7 @@ const rightNavItems: NavItem[] = [
                                         class="mr-2 h-4 w-4"
                                     />
                                     {{ item.title }}
-                                </Link>
+                                </router-link>
                                 <div
                                     v-if="isCurrentUrl(item.href)"
                                     class="absolute bottom-0 left-0 h-0.5 w-full translate-y-px bg-black dark:bg-white"

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Form, Head } from '@inertiajs/vue3';
+import { Form, Head } from '@/lib/inertia-spa';
 import InputError from '@/components/InputError.vue';
 import PasskeyVerify from '@/components/PasskeyVerify.vue';
 import PasswordInput from '@/components/PasswordInput.vue';
@@ -12,6 +12,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { register } from '@/routes';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
+import { useRouter } from 'vue-router';
 
 defineOptions({
     layout: {
@@ -24,6 +25,11 @@ defineProps<{
     status?: string;
     canResetPassword: boolean;
 }>();
+
+const router = useRouter();
+const handleSuccess = () => {
+    router.push('/dashboard');
+};
 </script>
 
 <template>
@@ -41,6 +47,7 @@ defineProps<{
     <Form
         v-bind="store.form()"
         :reset-on-success="['password']"
+        @success="handleSuccess"
         v-slot="{ errors, processing }"
         class="flex flex-col gap-6"
     >
@@ -102,9 +109,11 @@ defineProps<{
             </Button>
         </div>
 
+        <!--
         <div class="text-center text-sm text-muted-foreground">
             Don't have an account?
             <TextLink :href="register()" :tabindex="5">Sign up</TextLink>
         </div>
+        -->
     </Form>
 </template>

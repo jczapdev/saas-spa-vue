@@ -1,23 +1,13 @@
 <script setup lang="ts">
-import { Head } from '@inertiajs/vue3';
+import { useRoute } from 'vue-router';
 import AppearanceTabs from '@/components/AppearanceTabs.vue';
 import Heading from '@/components/Heading.vue';
-import { edit } from '@/routes/appearance';
 
-defineOptions({
-    layout: {
-        breadcrumbs: [
-            {
-                title: 'Appearance settings',
-                href: edit(),
-            },
-        ],
-    },
-});
+const route = useRoute();
+route.meta.title = 'Appearance settings';
 </script>
 
 <template>
-    <Head title="Appearance settings" />
 
     <h1 class="sr-only">Appearance settings</h1>
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import type { AppVariant } from '@/types';
 
@@ -11,7 +11,9 @@ withDefaults(defineProps<Props>(), {
     variant: 'sidebar',
 });
 
-const isOpen = usePage().props.sidebarOpen;
+// Get sidebar state from localStorage, default to true
+const sidebarOpenStorage = localStorage.getItem('sidebarOpen');
+const isOpen = computed(() => sidebarOpenStorage !== 'false');
 </script>
 
 <template>

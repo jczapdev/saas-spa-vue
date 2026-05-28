@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { usePage } from '@inertiajs/vue3';
+import { useAuth } from '@/composables/useUser';
 import { ChevronsUpDown } from 'lucide-vue-next';
 import { computed } from 'vue';
 import {
@@ -16,8 +16,7 @@ import {
 import UserInfo from '@/components/UserInfo.vue';
 import UserMenuContent from '@/components/UserMenuContent.vue';
 
-const page = usePage();
-const user = computed(() => page.props.auth.user);
+const { user } = useAuth();
 const { isMobile, state } = useSidebar();
 </script>
 

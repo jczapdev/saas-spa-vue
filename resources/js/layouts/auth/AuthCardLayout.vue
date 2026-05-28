@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Link } from '@inertiajs/vue3';
+import { Link } from '@/lib/inertia-spa';
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import {
     Card,
@@ -8,7 +8,7 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import { home } from '@/routes';
+const home = () => '/auth/login';
 
 defineProps<{
     title?: string;

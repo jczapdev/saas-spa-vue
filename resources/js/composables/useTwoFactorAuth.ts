@@ -1,4 +1,3 @@
-import { useHttp } from '@inertiajs/vue3';
 import type { ComputedRef, Ref } from 'vue';
 import { computed, ref } from 'vue';
 import { qrCode, recoveryCodes, secretKey } from '@/routes/two-factor';
@@ -27,12 +26,28 @@ const hasSetupData = computed<boolean>(
     () => qrCodeSvg.value !== null && manualSetupKey.value !== null,
 );
 
-export const useTwoFactorAuth = (): UseTwoFactorAuthReturn => {
-    const http = useHttp();
+async function submitRequest(routeFn: any): Promise<any> {
+    const routeInfo = routeFn();
+    const response = await fetch(routeInfo.url, {
+        method: routeInfo.method.toUpperCase(),
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+    });
 
+    if (!response.ok) {
+        throw new Error(`Request failed with status ${response.status}`);
+    }
+
+    return response.json();
+}
+
+export const useTwoFactorAuth = (): UseTwoFactorAuthReturn => {
     const fetchQrCode = async (): Promise<void> => {
         try {
-            const { svg } = (await http.submit(qrCode())) as {
+            const { svg } = (await submitRequest(qrCode)) as {
                 svg: string;
                 url: string;
             };
@@ -46,7 +61,7 @@ export const useTwoFactorAuth = (): UseTwoFactorAuthReturn => {
 
     const fetchSetupKey = async (): Promise<void> => {
         try {
-            const { secretKey: key } = (await http.submit(secretKey())) as {
+            const { secretKey: key } = (await submitRequest(secretKey)) as {
                 secretKey: string;
             };
 
@@ -76,8 +91,8 @@ export const useTwoFactorAuth = (): UseTwoFactorAuthReturn => {
     const fetchRecoveryCodes = async (): Promise<void> => {
         try {
             clearErrors();
-            recoveryCodesList.value = (await http.submit(
-                recoveryCodes(),
+            recoveryCodesList.value = (await submitRequest(
+                recoveryCodes,
             )) as string[];
         } catch {
             errors.value.push('Failed to fetch recovery codes');
@@ -110,3 +125,4 @@ export const useTwoFactorAuth = (): UseTwoFactorAuthReturn => {
         fetchRecoveryCodes,
     };
 };
+

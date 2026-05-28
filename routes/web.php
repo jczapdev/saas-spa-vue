@@ -2,10 +2,10 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::inertia('/', 'Welcome')->name('home');
-
-Route::middleware(['auth', 'verified'])->group(function () {
-    Route::inertia('dashboard', 'Dashboard')->name('dashboard');
-});
+// All web routes are handled by the SPA (single entry point)
+Route::view('/{any}', 'app')
+    ->where('any', '.*')
+    ->name('app');
 
 require __DIR__.'/settings.php';
+

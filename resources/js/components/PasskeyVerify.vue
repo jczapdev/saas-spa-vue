@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { UrlMethodPair } from '@inertiajs/core';
-import { router } from '@inertiajs/vue3';
+import type { UrlMethodPair } from '@/lib/inertia-spa';
+import { router } from '@/lib/inertia-spa';
 import { usePasskeyVerify } from '@laravel/passkeys/vue';
 import { KeyRound } from 'lucide-vue-next';
 import InputError from '@/components/InputError.vue';

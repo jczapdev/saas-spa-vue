@@ -1,4 +1,4 @@
-import type { InertiaLinkProps } from '@inertiajs/vue3';
+import type { InertiaLinkProps } from '@/lib/inertia-spa';
 import type { LucideIcon } from 'lucide-vue-next';
 
 export type BreadcrumbItem = {

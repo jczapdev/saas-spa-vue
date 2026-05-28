@@ -1,22 +1,13 @@
 <script setup lang="ts">
-import { Head } from '@inertiajs/vue3';
+import { useRoute } from 'vue-router';
 import PlaceholderPattern from '@/components/PlaceholderPattern.vue';
-import { dashboard } from '@/routes';
+const dashboard = () => '/dashboard';
 
-defineOptions({
-    layout: {
-        breadcrumbs: [
-            {
-                title: 'Dashboard',
-                href: dashboard(),
-            },
-        ],
-    },
-});
+const route = useRoute();
+route.meta.title = 'Dashboard';
 </script>
 
 <template>
-    <Head title="Dashboard" />
 
     <div
         class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"

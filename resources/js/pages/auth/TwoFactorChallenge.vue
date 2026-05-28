@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Form, Head, setLayoutProps } from '@inertiajs/vue3';
+import { Form, Head, setLayoutProps } from '@/lib/inertia-spa';
 import { computed, ref, watchEffect } from 'vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';

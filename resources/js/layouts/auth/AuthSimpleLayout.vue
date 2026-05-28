@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { Link } from '@inertiajs/vue3';
+import { Link } from '@/lib/inertia-spa';
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
-import { home } from '@/routes';
+const home = () => '/auth/login';
 
 defineProps<{
     title?: string;

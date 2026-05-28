@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Link } from '@inertiajs/vue3';
 import { BookOpen, FolderGit2, LayoutGrid } from 'lucide-vue-next';
 import AppLogo from '@/components/AppLogo.vue';
 import NavFooter from '@/components/NavFooter.vue';
@@ -14,7 +13,8 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { dashboard } from '@/routes';
+import { toUrl } from '@/lib/utils';
+const dashboard = () => '/dashboard';
 import type { NavItem } from '@/types';
 
 const mainNavItems: NavItem[] = [
@@ -45,9 +45,9 @@ const footerNavItems: NavItem[] = [
             <SidebarMenu>
                 <SidebarMenuItem>
                     <SidebarMenuButton size="lg" as-child>
-                        <Link :href="dashboard()">
+                        <router-link :to="toUrl(dashboard())">
                             <AppLogo />
-                        </Link>
+                        </router-link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
             </SidebarMenu>

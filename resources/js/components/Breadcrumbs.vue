@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Link } from '@inertiajs/vue3';
 import {
     Breadcrumb,
     BreadcrumbItem,
@@ -8,6 +7,7 @@ import {
     BreadcrumbPage,
     BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
+import { toUrl } from '@/lib/utils';
 import type { BreadcrumbItem as BreadcrumbItemType } from '@/types';
 
 type Props = {
@@ -27,7 +27,9 @@ defineProps<Props>();
                     </template>
                     <template v-else>
                         <BreadcrumbLink as-child>
-                            <Link :href="item.href">{{ item.title }}</Link>
+                            <router-link :to="toUrl(item.href)">
+                                {{ item.title }}
+                            </router-link>
                         </BreadcrumbLink>
                     </template>
                 </BreadcrumbItem>
