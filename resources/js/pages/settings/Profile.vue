@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Form, Head, usePage } from '@/lib/inertia-spa';
+import { Form, Head } from '@/lib/inertia-spa';
 import { Link } from '@/lib/inertia-spa';
 import { computed } from 'vue';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { edit } from '@/routes/profile';
 import { send } from '@/routes/verification';
+import { useAuth } from '@/composables/useUser';
 
 defineOptions({
     layout: {
@@ -23,8 +24,7 @@ defineOptions({
     },
 });
 
-const page = usePage();
-const user = computed(() => page.props.auth.user);
+const { user } = useAuth();
 </script>
 
 <template>
@@ -50,7 +50,7 @@ const user = computed(() => page.props.auth.user);
                     id="name"
                     class="mt-1 block w-full"
                     name="name"
-                    :default-value="user.name"
+                    :default-value="user?.name"
                     required
                     autocomplete="name"
                     placeholder="Full name"
@@ -65,7 +65,7 @@ const user = computed(() => page.props.auth.user);
                     type="email"
                     class="mt-1 block w-full"
                     name="email"
-                    :default-value="user.email"
+                    :default-value="user?.email"
                     required
                     autocomplete="username"
                     placeholder="Email address"
@@ -73,7 +73,7 @@ const user = computed(() => page.props.auth.user);
                 <InputError class="mt-2" :message="errors.email" />
             </div>
 
-            <div v-if="page.props.mustVerifyEmail && !user.email_verified_at">
+            <div v-if="!user?.email_verified_at">
                 <p class="-mt-4 text-sm text-muted-foreground">
                     Your email address is unverified.
                     <Link
@@ -86,7 +86,7 @@ const user = computed(() => page.props.auth.user);
                 </p>
 
                 <div
-                    v-if="page.props.status === 'verification-link-sent'"
+                    v-if="false"
                     class="mt-2 text-sm font-medium text-green-600"
                 >
                     A new verification link has been sent to your email address.

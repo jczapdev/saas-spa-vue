@@ -23,7 +23,7 @@ initializeTheme();
 // Initialize flash toast notifications
 initializeFlashToast();
 
-// Initialize authentication
+// Initialize authentication (non-blocking - Vue reactivity handles the update)
 initializeAuth();
 
 app.mount('#app');

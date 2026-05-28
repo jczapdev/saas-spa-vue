@@ -13,15 +13,18 @@ export interface User {
 
 export interface AuthState {
     user: User | null;
+    ready: boolean;
 }
 
 const authState = ref<AuthState>({
     user: null,
+    ready: false,
 });
 
 export function useAuth() {
     const user = computed(() => authState.value.user);
     const isAuthenticated = computed(() => authState.value.user !== null);
+    const isAuthReady = computed(() => authState.value.ready);
 
     const setUser = (newUser: User | null) => {
         authState.value.user = newUser;
@@ -34,6 +37,7 @@ export function useAuth() {
     return {
         user,
         isAuthenticated,
+        isAuthReady,
         setUser,
         logout,
     };
@@ -42,6 +46,10 @@ export function useAuth() {
 // Initialize auth from server on app load
 export async function initializeAuth() {
     try {
+        await fetch('/sanctum/csrf-cookie', {
+            headers: { 'Accept': 'application/json' }
+        });
+
         const response = await fetch('/api/user', {
             headers: {
                 'Accept': 'application/json',
@@ -56,5 +64,9 @@ export async function initializeAuth() {
         }
     } catch {
         // User is not authenticated
+    } finally {
+        // Mark auth as ready regardless of success or failure
+        authState.value.ready = true;
     }
 }
+

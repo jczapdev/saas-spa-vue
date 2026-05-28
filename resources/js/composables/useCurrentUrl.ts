@@ -21,10 +21,11 @@ export type UseCurrentUrlReturn = {
     ) => T | F;
 };
 
-const route = useRoute();
-const currentUrlReactive = computed(() => route.path);
-
 export function useCurrentUrl(): UseCurrentUrlReturn {
+    const route = useRoute();
+    const currentUrlReactive = computed(() => route.path);
+
+    
     function isCurrentUrl(
         urlToCheck: string | { url?: string },
         currentUrl?: string,

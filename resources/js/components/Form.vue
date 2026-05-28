@@ -14,6 +14,13 @@ const processing = ref(false);
 const errors = ref<Record<string, string>>({});
 const router = useRouter();
 
+function getCsrfToken() {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; XSRF-TOKEN=`);
+    if (parts.length === 2) return decodeURIComponent(parts.pop()?.split(';').shift() || '');
+    return '';
+}
+
 const submit = async (e: Event) => {
     e.preventDefault();
     if (!props.action) return;
@@ -41,8 +48,10 @@ const submit = async (e: Event) => {
                 'X-Requested-With': 'XMLHttpRequest',
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
+                'X-XSRF-TOKEN': getCsrfToken(),
                 ...(method !== 'GET' && method !== 'POST' ? { 'X-HTTP-Method-Override': method } : {})
             },
+            credentials: 'same-origin',
             body: method === 'GET' ? undefined : JSON.stringify(dataObj)
         });
 

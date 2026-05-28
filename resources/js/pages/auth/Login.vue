@@ -13,6 +13,7 @@ import { register } from '@/routes';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
 import { useRouter } from 'vue-router';
+import { initializeAuth } from '@/composables/useUser';
 
 defineOptions({
     layout: {
@@ -21,13 +22,16 @@ defineOptions({
     },
 });
 
-defineProps<{
+withDefaults(defineProps<{
     status?: string;
-    canResetPassword: boolean;
-}>();
+    canResetPassword?: boolean;
+}>(), {
+    canResetPassword: false,
+});
 
 const router = useRouter();
-const handleSuccess = () => {
+const handleSuccess = async () => {
+    await initializeAuth();
     router.push('/dashboard');
 };
 </script>

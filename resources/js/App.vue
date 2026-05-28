@@ -6,8 +6,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
-import { useRoute } from 'vue-router';
+import { h, computed } from 'vue';
+import { useRoute, RouterView } from 'vue-router';
 
 const route = useRoute();
 
@@ -19,8 +19,13 @@ const layout = computed(() => {
     if (Array.isArray(meta)) {
         const [OuterLayout, InnerLayout] = meta;
         return {
-            components: { OuterLayout, InnerLayout },
-            template: '<OuterLayout><InnerLayout><router-view /></InnerLayout></OuterLayout>',
+            render() {
+                return h(OuterLayout, null, {
+                    default: () => h(InnerLayout, null, {
+                        default: () => h(RouterView)
+                    })
+                });
+            }
         };
     }
     

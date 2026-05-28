@@ -1,7 +1,9 @@
-import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router';
+import { h, watch } from 'vue';
+import { createRouter, createWebHistory, type RouteRecordRaw, RouterView } from 'vue-router';
 import AppLayout from '@/layouts/AppLayout.vue';
 import AuthLayout from '@/layouts/AuthLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
+import { useAuth } from '@/composables/useUser';
 
 // Define all routes manually or auto-discover from pages
 const routes: RouteRecordRaw[] = [
@@ -11,7 +13,7 @@ const routes: RouteRecordRaw[] = [
     },
     {
         path: '/auth',
-        component: { template: '<router-view />' },
+        component: { render: () => h(RouterView) },
         children: [
             {
                 path: 'login',
@@ -57,7 +59,7 @@ const routes: RouteRecordRaw[] = [
     },
     {
         path: '/settings',
-        component: { template: '<router-view />' },
+        component: { render: () => h(RouterView) },
         meta: { layout: AppLayout, requiresAuth: true },
         children: [
             {
@@ -86,6 +88,30 @@ const routes: RouteRecordRaw[] = [
 export const router = createRouter({
     history: createWebHistory(),
     routes,
+});
+
+router.beforeEach(async (to) => {
+    const { isAuthenticated, isAuthReady } = useAuth();
+
+    // Wait for auth initialization to complete before making redirect decisions
+    if (!isAuthReady.value) {
+        await new Promise<void>((resolve) => {
+            const stop = watch(isAuthReady, (ready) => {
+                if (ready) {
+                    stop();
+                    resolve();
+                }
+            });
+        });
+    }
+
+    if (to.meta.requiresAuth && !isAuthenticated.value) {
+        return { path: '/auth/login' };
+    }
+
+    if (to.path.startsWith('/auth') && isAuthenticated.value) {
+        return { path: '/dashboard' };
+    }
 });
 
 export default router;
