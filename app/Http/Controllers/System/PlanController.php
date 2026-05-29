@@ -8,24 +8,21 @@ use App\Http\Requests\System\UpdatePlanRequest;
 use App\Http\Resources\System\PlanResource;
 use App\Models\System\Plan;
 use App\Services\System\PlanService;
-use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
-use Inertia\Response;
 
 class PlanController extends Controller
 {
     public function __construct(
         protected PlanService $planService
-    ) {
-    }
+    ) {}
 
-    public function index(Request $request): Response
+    public function index(Request $request): JsonResponse
     {
         $filters = $request->only(['search', 'is_active', 'is_free']);
         $plans = $this->planService->listPlans($filters);
 
-        return Inertia::render('system/plans/Index', [
+        return response()->json([
             'plans' => PlanResource::collection($plans),
             'filters' => $filters,
             'stats' => [
@@ -36,37 +33,28 @@ class PlanController extends Controller
         ]);
     }
 
-    public function store(StorePlanRequest $request): RedirectResponse
+    public function store(StorePlanRequest $request): JsonResponse
     {
-        $this->planService->createPlan($request->validated());
+        $plan = $this->planService->createPlan($request->validated());
 
-        return redirect()
-            ->route('plans.index')
-            ->with('success', 'Plan created successfully');
+        return response()->json(['message' => 'Plan created successfully'], 201);
     }
 
-    public function update(UpdatePlanRequest $request, Plan $plan): RedirectResponse
+    public function update(UpdatePlanRequest $request, Plan $plan): JsonResponse
     {
         $this->planService->updatePlan($plan, $request->validated());
 
-        return redirect()
-            ->route('plans.index')
-            ->with('success', 'Plan updated successfully');
+        return response()->json(['message' => 'Plan updated successfully']);
     }
 
-    public function destroy(Plan $plan): RedirectResponse
+    public function destroy(Plan $plan): JsonResponse
     {
-        // Check if plan has active tenants
         if ($plan->tenants()->count() > 0) {
-            return redirect()
-                ->route('plans.index')
-                ->with('error', 'Cannot delete plan with active tenants');
+            return response()->json(['message' => 'Cannot delete plan with active tenants'], 422);
         }
 
         $this->planService->deletePlan($plan);
 
-        return redirect()
-            ->route('plans.index')
-            ->with('success', 'Plan deleted successfully');
+        return response()->json(['message' => 'Plan deleted successfully']);
     }
 }

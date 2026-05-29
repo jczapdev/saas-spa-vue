@@ -4,18 +4,18 @@ namespace App\Http\Controllers\System\Settings;
 
 use App\Http\Controllers\Controller;
 use App\Models\System\Setting;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
-use Inertia\Inertia;
 
 class SmtpController extends Controller
 {
     /**
-     * Show the SMTP settings page.
+     * Return the current SMTP settings for the SPA.
      */
-    public function edit()
+    public function edit(): JsonResponse
     {
-        return Inertia::render('system/settings/Smtp', [
+        return response()->json([
             'smtp_host' => Setting::where('key', 'smtp_host')->value('value') ?? '',
             'smtp_port' => Setting::where('key', 'smtp_port')->value('value') ?? '587',
             'smtp_encryption' => Setting::where('key', 'smtp_encryption')->value('value') ?? 'tls',
@@ -28,7 +28,7 @@ class SmtpController extends Controller
     /**
      * Update SMTP settings.
      */
-    public function update(Request $request)
+    public function update(Request $request): JsonResponse
     {
         $validated = $request->validate([
             'smtp_host' => 'required|string|max:255',
@@ -40,10 +40,9 @@ class SmtpController extends Controller
             'smtp_from_name' => 'required|string|max:255',
         ]);
 
-        // Update all settings except password if empty
         foreach ($validated as $key => $value) {
             if ($key === 'smtp_password' && empty($value)) {
-                continue; // Don't overwrite password if empty
+                continue;
             }
 
             $settingValue = $key === 'smtp_password' ? encrypt($value) : $value;
@@ -54,29 +53,27 @@ class SmtpController extends Controller
             );
         }
 
-        return redirect()->back()
-            ->with('success', 'SMTP settings updated successfully.');
+        return response()->json(['message' => 'SMTP settings updated successfully.']);
     }
 
     /**
      * Send a test email.
      */
-    public function test(Request $request)
+    public function test(Request $request): JsonResponse
     {
         try {
-            // Configure mail on the fly with stored settings
             $this->configureMailer();
 
             Mail::raw('This is a test email from your SMTP configuration.', function ($message) use ($request) {
                 $message->to($request->user()->email)
-                    ->subject('SMTP Test Email - ' . config('app.name'));
+                    ->subject('SMTP Test Email - '.config('app.name'));
             });
 
-            return redirect()->back()
-                ->with('success', 'Test email sent successfully to ' . $request->user()->email);
+            return response()->json(['message' => 'Test email sent successfully to '.$request->user()->email]);
         } catch (\Exception $e) {
-            return redirect()->back()
-                ->withErrors(['error' => 'Failed to send test email: ' . $e->getMessage()]);
+            return response()->json([
+                'message' => 'Failed to send test email: '.$e->getMessage(),
+            ], 422);
         }
     }
 

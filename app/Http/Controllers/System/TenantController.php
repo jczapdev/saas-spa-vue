@@ -4,9 +4,13 @@ namespace App\Http\Controllers\System;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\System\StoreTenantRequest;
+use App\Http\Requests\System\UpdateTenantRequest;
+use App\Http\Resources\System\TenantResource;
+use App\Models\System\Plan;
 use App\Models\System\Tenant;
 use App\Services\System\TenantService;
-use App\Models\System\Plan;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class TenantController extends Controller
 {
@@ -17,26 +21,26 @@ class TenantController extends Controller
         $this->tenantService = $tenantService;
     }
 
-    public function index(\Illuminate\Http\Request $request): \Inertia\Response
+    public function index(Request $request): JsonResponse
     {
         $filters = $request->only(['search', 'status', 'plan_id', 'is_active']);
-        
+
         $tenants = $this->tenantService->listTenants($filters);
 
-        return \Inertia\Inertia::render('system/tenants/Index', [
-            'tenants' => \App\Http\Resources\System\TenantResource::collection($tenants),
+        return response()->json([
+            'tenants' => TenantResource::collection($tenants),
             'filters' => $filters,
             'stats' => [
-                'total' => \App\Models\System\Tenant::count(),
-                'active' => \App\Models\System\Tenant::where('status', 'Active')->count(),
-                'trial' => \App\Models\System\Tenant::where('status', 'Trial')->count(),
-                'canceled' => \App\Models\System\Tenant::where('status', 'Canceled')->count(),
+                'total' => Tenant::count(),
+                'active' => Tenant::where('status', 'Active')->count(),
+                'trial' => Tenant::where('status', 'Trial')->count(),
+                'canceled' => Tenant::where('status', 'Canceled')->count(),
             ],
             'plans' => Plan::where('is_active', true)->get()->map(function ($plan) {
                 return [
                     'id' => $plan->id,
                     'name' => $plan->name,
-                    'price_formatted' => $plan->currency . ' ' . number_format($plan->price, 2),
+                    'price_formatted' => $plan->currency.' '.number_format($plan->price, 2),
                 ];
             }),
         ]);
@@ -51,17 +55,17 @@ class TenantController extends Controller
 
         $tenant = $this->tenantService->createTenant($validated);
 
-        return redirect()->back()->with('success', 'Tenant created successfully! Database and domain configured.');
+        return response()->json(['message' => 'Tenant created successfully! Database and domain configured.'], 201);
     }
 
     /**
      * Update the specified tenant in storage.
      */
-    public function update(\App\Http\Requests\System\UpdateTenantRequest $request, Tenant $tenant)
+    public function update(UpdateTenantRequest $request, Tenant $tenant)
     {
         $tenant = $this->tenantService->updateTenant($tenant, $request->validated());
 
-        return redirect()->back()->with('success', 'Tenant updated successfully!');
+        return response()->json(['message' => 'Tenant updated successfully!']);
     }
 
     /**
@@ -71,9 +75,10 @@ class TenantController extends Controller
     {
         try {
             $this->tenantService->deleteTenant($tenant);
-            return redirect()->back()->with('success', 'Tenant deleted successfully! Database and domains removed.');
+
+            return response()->json(['message' => 'Tenant deleted successfully! Database and domains removed.']);
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', $e->getMessage());
+            return response()->json(['message' => $e->getMessage()], 422);
         }
     }
 
@@ -84,7 +89,7 @@ class TenantController extends Controller
     {
         $tenant = $this->tenantService->cancelTenant($tenant);
 
-        return redirect()->back()->with('success', 'Tenant canceled successfully. Grace period started.');
+        return response()->json(['message' => 'Tenant canceled successfully. Grace period started.']);
     }
 
     /**
@@ -94,9 +99,10 @@ class TenantController extends Controller
     {
         try {
             $tenant = $this->tenantService->restoreTenant($tenant);
-            return redirect()->back()->with('success', 'Tenant restored successfully!');
+
+            return response()->json(['message' => 'Tenant restored successfully!']);
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', $e->getMessage());
+            return response()->json(['message' => $e->getMessage()], 422);
         }
     }
 }

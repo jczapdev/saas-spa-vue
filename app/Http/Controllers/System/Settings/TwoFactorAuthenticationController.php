@@ -4,10 +4,9 @@ namespace App\Http\Controllers\System\Settings;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\TwoFactorAuthenticationRequest;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
-use Inertia\Inertia;
-use Inertia\Response;
 use Laravel\Fortify\Features;
 
 class TwoFactorAuthenticationController extends Controller implements HasMiddleware
@@ -23,13 +22,13 @@ class TwoFactorAuthenticationController extends Controller implements HasMiddlew
     }
 
     /**
-     * Show the user's two-factor authentication settings page.
+     * Return 2FA status data for the SPA.
      */
-    public function show(TwoFactorAuthenticationRequest $request): Response
+    public function show(TwoFactorAuthenticationRequest $request): JsonResponse
     {
         $request->ensureStateIsValid();
 
-        return Inertia::render('system/settings/TwoFactor', [
+        return response()->json([
             'twoFactorEnabled' => $request->user()->hasEnabledTwoFactorAuthentication(),
             'requiresConfirmation' => Features::optionEnabled(Features::twoFactorAuthentication(), 'confirm'),
         ]);

@@ -4,8 +4,7 @@ namespace App\Http\Controllers\System;
 
 use App\Http\Controllers\Controller;
 use App\Models\System\Tenant;
-use Illuminate\Http\Request;
-use Inertia\Inertia;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
@@ -13,7 +12,7 @@ class DashboardController extends Controller
     /**
      * Display the system dashboard with key metrics.
      */
-    public function index()
+    public function index(): JsonResponse
     {
         // 1. Key Performance Indicators (KPIs)
         $stats = [
@@ -36,8 +35,8 @@ class DashboardController extends Controller
                     'status' => $tenant->status,
                     'plan_name' => $tenant->plan ? $tenant->plan->name : 'N/A',
                     'created_at' => $tenant->created_at->diffForHumans(),
-                    'domain_url' => $tenant->domains->first()?->domain 
-                        ? (request()->secure() ? 'https://' : 'http://') . $tenant->domains->first()->domain 
+                    'domain_url' => $tenant->domains->first()?->domain
+                        ? (request()->secure() ? 'https://' : 'http://').$tenant->domains->first()->domain
                         : null,
                 ];
             });
@@ -54,7 +53,7 @@ class DashboardController extends Controller
                 ];
             });
 
-        return Inertia::render('system/Dashboard', [
+        return response()->json([
             'stats' => $stats,
             'recentTenants' => $recentTenants,
             'planDistribution' => $planDistribution,

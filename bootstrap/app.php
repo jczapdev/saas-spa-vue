@@ -3,18 +3,17 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
 return Application::configure(basePath: dirname(__DIR__))
+
     /*
     |--------------------------------------------------------------------------
-    | Routing Configuration
+    | Routing
     |--------------------------------------------------------------------------
-    | Central domains, tenant domains, API and console routes
     */
     ->withRouting(
         using: function () {
@@ -22,7 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
             /*
             |--------------------------------------------------------------
-            | Central Routes (Admin / Platform)
+            | Web — Central
             |--------------------------------------------------------------
             */
             foreach ($centralDomains as $domain) {
@@ -33,7 +32,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
             /*
             |--------------------------------------------------------------
-            | Tenant Routes (Customer / Client)
+            | Web — Tenant
             |--------------------------------------------------------------
             */
             Route::middleware([
@@ -44,7 +43,19 @@ return Application::configure(basePath: dirname(__DIR__))
 
             /*
             |--------------------------------------------------------------
-            | API Routes (Central & Tenant)
+            | API — Central
+            |--------------------------------------------------------------
+            */
+            foreach ($centralDomains as $domain) {
+                Route::prefix('api')
+                    ->middleware('api')
+                    ->domain($domain)
+                    ->group(base_path('routes/api.php'));
+            }
+
+            /*
+            |--------------------------------------------------------------
+            | API — Tenant
             |--------------------------------------------------------------
             */
             Route::prefix('api')
@@ -52,49 +63,53 @@ return Application::configure(basePath: dirname(__DIR__))
                     'api',
                     InitializeTenancyByDomain::class,
                 ])
-                ->group(base_path('routes/api.php'));
+                ->group(base_path('routes/api-tenant.php'));
         },
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
-    
+
     /*
     |--------------------------------------------------------------------------
-    | Middleware Configuration
+    | Middleware
     |--------------------------------------------------------------------------
     */
     ->withMiddleware(function (Middleware $middleware): void {
-        // Cookies que no deben ser encriptadas
+        $middleware->trustProxies('*');
+
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
-        
-        // Habilitar API stateful para Sanctum
+
         $middleware->statefulApi();
 
-        // Middlewares adicionales para rutas web
-        $middleware->web(append: [
-            AddLinkHeadersForPreloadedAssets::class,
-        ]);
-
-        // Redirección para invitados según si están en tenant o central
         $middleware->redirectGuestsTo(function (Request $request) {
-            if (function_exists('tenancy') && tenancy()->initialized) {
+            if (tenant()) {
                 return route('tenant.login');
             }
-
             return route('login');
         });
+
+        $middleware->redirectUsersTo(function (Request $request) {
+            if (tenant()) {
+                return route('tenant.dashboard');
+            }
+            return route('dashboard');
+        });
+
+        $middleware->alias([
+            'auth.tenant'  => \Illuminate\Auth\Middleware\Authenticate::class . ':tenant',
+            'guest.tenant' => \Illuminate\Auth\Middleware\RedirectIfAuthenticated::class . ':tenant',
+        ]);
     })
-    
+
     /*
     |--------------------------------------------------------------------------
-    | Exception Handling
+    | Exceptions
     |--------------------------------------------------------------------------
     */
     ->withExceptions(function (Exceptions $exceptions): void {
-        // Renderizar respuestas JSON para las rutas API
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*'),
         );
     })
-    
+
     ->create();

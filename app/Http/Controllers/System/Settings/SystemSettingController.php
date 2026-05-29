@@ -4,31 +4,30 @@ namespace App\Http\Controllers\System\Settings;
 
 use App\Http\Controllers\Controller;
 use App\Models\System\Setting;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 
 class SystemSettingController extends Controller
 {
     /**
-     * Show the General settings page.
+     * Return the General settings data for the SPA.
      */
-    public function editGeneral()
+    public function editGeneral(): JsonResponse
     {
-        return Inertia::render('system/settings/General', [
+        return response()->json([
             'app_name' => Setting::where('key', 'app_name')->value('value') ?? config('app.name'),
             'app_logo' => Setting::where('key', 'app_logo')->value('value'),
-            'settings_general_update_url' => route('system.settings.general'),
         ]);
     }
 
     /**
      * Update General settings (Name & Logo).
      */
-    public function updateGeneral(Request $request)
+    public function updateGeneral(Request $request): JsonResponse
     {
         $validated = $request->validate([
             'app_name' => 'required|string|max:255',
-            'app_logo' => 'nullable|image|max:1024', // Max 1MB
+            'app_logo' => 'nullable|image|max:1024',
         ]);
 
         Setting::updateOrCreate(
@@ -38,40 +37,30 @@ class SystemSettingController extends Controller
 
         if ($request->hasFile('app_logo')) {
             $path = $request->file('app_logo')->store('logos', 'public');
-            // Storage::url() requires 'public/' to be stripped if using standard link, 
-            // but let's store the full path relative to storage/app usually, 
-            // or just the filename if we use a specific disk.
-            // Default filesystem 'public' stores in storage/app/public.
-            // The public URL is /storage/logos/filename.
-            
-            // Let's store the relative path for Storage::url usage
             Setting::updateOrCreate(
                 ['key' => 'app_logo'],
-                ['value' => $path] // e.g., public/logos/xyz.png
+                ['value' => $path]
             );
         }
 
-        return redirect()->back()
-            ->with('success', 'Settings updated successfully.');
+        return response()->json(['message' => 'Settings updated successfully.']);
     }
 
     /**
-     * Show the Guest Registration settings page using the existing Vue component.
+     * Return the Guest Registration setting for the SPA.
      */
-    public function editGuestRegistration()
+    public function editGuestRegistration(): JsonResponse
     {
         $setting = Setting::where('key', 'guest_registration')->first();
         $enabled = $setting ? (bool) $setting->value : false;
 
-        return Inertia::render('system/settings/GuestRegister', [
-            'guest_registration_enabled' => $enabled,
-        ]);
+        return response()->json(['guest_registration_enabled' => $enabled]);
     }
 
     /**
      * Update the Guest Registration setting.
      */
-    public function updateGuestRegistration(Request $request)
+    public function updateGuestRegistration(Request $request): JsonResponse
     {
         $validated = $request->validate([
             'enabled' => 'required|boolean',
@@ -82,6 +71,6 @@ class SystemSettingController extends Controller
             ['value' => $validated['enabled']]
         );
 
-        return redirect()->back()->with('success', 'Settings updated successfully.');
+        return response()->json(['message' => 'Settings updated successfully.']);
     }
 }

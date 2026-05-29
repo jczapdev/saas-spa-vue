@@ -6,36 +6,28 @@ use App\Http\Controllers\Controller;
 use App\Models\System\Plan;
 use App\Models\System\Setting;
 use App\Services\System\TenantService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rules\Password;
-use Inertia\Inertia;
 
 class GuestRegisterController extends Controller
 {
-    protected $tenantService;
+    public function __construct(protected TenantService $tenantService) {}
 
-    public function __construct(TenantService $tenantService)
+    public function index(): JsonResponse
     {
-        $this->tenantService = $tenantService;
-    }
-
-    public function index()
-    {
-        // Check if guest registration is enabled
         $setting = Setting::where('key', 'guest_registration')->first();
         $enabled = $setting ? (bool) $setting->value : false;
 
-        if (!$enabled) {
-            return Inertia::render('system/guest-register/Disabled');
+        if (! $enabled) {
+            return response()->json(['enabled' => false], 403);
         }
 
-        // Get Free Plan (assuming there is one, or just pick the first one)
-        // Ideally we should have a 'is_free' or 'is_default' flag on plans
-        // For now, let's try to find a plan with price 0
         $freePlan = Plan::where('price', 0)->first();
 
-        return Inertia::render('system/guest-register/Index', [
+        return response()->json([
+            'enabled' => true,
             'app_url_base' => config('app.url_base'),
             'free_plan' => $freePlan ? [
                 'id' => $freePlan->id,
@@ -45,50 +37,49 @@ class GuestRegisterController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request): JsonResponse
     {
-        // Check availability again
         $setting = Setting::where('key', 'guest_registration')->first();
-        if (!($setting ? (bool) $setting->value : false)) {
-            abort(403, 'Registration is disabled.');
+        if (! ($setting ? (bool) $setting->value : false)) {
+            return response()->json(['message' => 'Registration is disabled.'], 403);
         }
 
         $validated = $request->validate([
             'company_name' => ['required', 'string', 'max:255', 'unique:tenants,name'],
             'owner_name' => ['required', 'string', 'max:255'],
             'owner_email' => ['required', 'string', 'email', 'max:255'],
-            'domain' => ['required', 'string', 'max:63', 'alpha_dash', 'unique:domains,domain'], // Max 63 for subdomain
+            'domain' => ['required', 'string', 'max:63', 'alpha_dash', 'unique:domains,domain'],
             'password' => ['required', 'confirmed', Password::defaults()],
         ]);
 
-        // Find a free plan
         $freePlan = Plan::where('price', 0)->first();
 
         try {
-            // Prepare data for TenantService
-            // TenantService expects 'name' for company name
             $data = [
                 'name' => $validated['company_name'],
                 'owner_name' => $validated['owner_name'],
                 'owner_email' => $validated['owner_email'],
                 'owner_password' => $validated['password'],
                 'domain' => $validated['domain'],
-                'plan_id' => $freePlan ? $freePlan->id : null,
-                'status' => 'Active', // Auto-activate free tenants? Or 'Trial'? Let's go with Active for free tiers generally.
+                'plan_id' => $freePlan?->id,
+                'status' => 'Active',
             ];
 
             $tenant = $this->tenantService->createTenant($data);
 
-            // Redirect to tenant domain login
             $protocol = request()->secure() ? 'https://' : 'http://';
             $tenantDomain = $tenant->domains->first()->domain;
-            $redirectUrl = $protocol . $tenantDomain . '/login';
+            $redirectUrl = $protocol.$tenantDomain.'/login';
 
-            return Inertia::location($redirectUrl);
+            return response()->json(['redirect_url' => $redirectUrl]);
 
         } catch (\Exception $e) {
-            Log::error('Guest registration failed: ' . $e->getMessage());
-            return back()->withErrors(['submit' => 'Registration failed. Please try again. ' . $e->getMessage()]);
+            Log::error('Guest registration failed: '.$e->getMessage());
+
+            return response()->json([
+                'message' => 'Registration failed. Please try again.',
+                'error' => $e->getMessage(),
+            ], 422);
         }
     }
 }
