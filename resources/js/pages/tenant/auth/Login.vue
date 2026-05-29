@@ -13,7 +13,7 @@ import { register } from '@/routes';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
 import { useRouter } from 'vue-router';
-import { initializeAuth } from '@/composables/useUser';
+import { initializeAuth, useAuth } from '@/composables/useUser';
 
 defineOptions({
     layout: {
@@ -32,7 +32,14 @@ withDefaults(defineProps<{
 const router = useRouter();
 const handleSuccess = async () => {
     await initializeAuth();
-    router.push('/dashboard');
+
+    if (useAuth().isAuthenticated.value) {
+        await router.push('/dashboard');
+
+        return;
+    }
+
+    window.location.assign('/dashboard');
 };
 </script>
 
@@ -108,8 +115,10 @@ const handleSuccess = async () => {
                 :disabled="processing"
                 data-test="login-button"
             >
-                <Spinner v-if="processing" />
-                Log in
+                <span class="inline-flex items-center justify-center gap-2">
+                    <Spinner v-if="processing" />
+                    <span>Log in</span>
+                </span>
             </Button>
         </div>
 

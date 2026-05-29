@@ -45,13 +45,15 @@ const { verify, isLoading, error, isSupported } = usePasskeyVerify({
                 @click="verify"
                 :disabled="isLoading"
             >
-                <Spinner v-if="isLoading" />
-                <KeyRound v-else class="h-4 w-4" />
-                {{
-                    isLoading
-                        ? (props.loadingLabel ?? 'Authenticating...')
-                        : (props.label ?? 'Sign in with a passkey')
-                }}
+                <span class="inline-flex items-center justify-center gap-2">
+                    <Spinner v-if="isLoading" />
+                    <KeyRound v-else class="h-4 w-4" />
+                    <span>{{
+                        isLoading
+                            ? (props.loadingLabel ?? 'Authenticating...')
+                            : (props.label ?? 'Sign in with a passkey')
+                    }}</span>
+                </span>
             </Button>
 
             <div v-if="error" class="text-center">

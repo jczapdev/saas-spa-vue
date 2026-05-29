@@ -17,44 +17,44 @@ const routes: RouteRecordRaw[] = [
         children: [
             {
                 path: 'login',
-                component: () => import('@/pages/auth/Login.vue'),
+                component: () => import('@/pages/system/auth/Login.vue'),
                 meta: { layout: AuthLayout },
             },
             {
                 path: 'register',
-                component: () => import('@/pages/auth/Register.vue'),
+                component: () => import('@/pages/system/auth/Register.vue'),
                 meta: { layout: AuthLayout },
             },
             {
                 path: 'forgot-password',
-                component: () => import('@/pages/auth/ForgotPassword.vue'),
+                component: () => import('@/pages/system/auth/ForgotPassword.vue'),
                 meta: { layout: AuthLayout },
             },
             {
                 path: 'reset-password/:token',
-                component: () => import('@/pages/auth/ResetPassword.vue'),
+                component: () => import('@/pages/system/auth/ResetPassword.vue'),
                 meta: { layout: AuthLayout },
             },
             {
                 path: 'verify-email/:id/:hash',
-                component: () => import('@/pages/auth/VerifyEmail.vue'),
+                component: () => import('@/pages/system/auth/VerifyEmail.vue'),
                 meta: { layout: AuthLayout },
             },
             {
                 path: 'confirm-password',
-                component: () => import('@/pages/auth/ConfirmPassword.vue'),
+                component: () => import('@/pages/system/auth/ConfirmPassword.vue'),
                 meta: { layout: AuthLayout },
             },
             {
                 path: 'two-factor',
-                component: () => import('@/pages/auth/TwoFactorChallenge.vue'),
+                component: () => import('@/pages/system/auth/TwoFactorChallenge.vue'),
                 meta: { layout: AuthLayout },
             },
         ],
     },
     {
         path: '/dashboard',
-        component: () => import('@/pages/Dashboard.vue'),
+        component: () => import('@/pages/system/Dashboard.vue'),
         meta: { layout: AppLayout, requiresAuth: true },
     },
     {
@@ -64,17 +64,17 @@ const routes: RouteRecordRaw[] = [
         children: [
             {
                 path: 'profile',
-                component: () => import('@/pages/settings/Profile.vue'),
+                component: () => import('@/pages/system/settings/Profile.vue'),
                 meta: { layout: [AppLayout, SettingsLayout] },
             },
             {
                 path: 'security',
-                component: () => import('@/pages/settings/Security.vue'),
+                component: () => import('@/pages/system/settings/Security.vue'),
                 meta: { layout: [AppLayout, SettingsLayout] },
             },
             {
                 path: 'appearance',
-                component: () => import('@/pages/settings/Appearance.vue'),
+                component: () => import('@/pages/system/settings/Appearance.vue'),
                 meta: { layout: [AppLayout, SettingsLayout] },
             },
         ],

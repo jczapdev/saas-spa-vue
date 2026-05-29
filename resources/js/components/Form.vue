@@ -27,20 +27,19 @@ const submit = async (e: Event) => {
 
     processing.value = true;
     errors.value = {};
-    
+
     emit('submit', e);
 
     const form = e.target as HTMLFormElement;
     const formData = new FormData(form);
 
-    // Convert FormData to JSON for Laravel
     const dataObj: Record<string, any> = {};
     formData.forEach((value, key) => {
         dataObj[key] = value;
     });
 
     const method = (props.method || 'post').toUpperCase();
-    
+
     try {
         const response = await fetch(props.action, {
             method: method === 'GET' ? 'GET' : 'POST',
@@ -49,45 +48,49 @@ const submit = async (e: Event) => {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
                 'X-XSRF-TOKEN': getCsrfToken(),
-                ...(method !== 'GET' && method !== 'POST' ? { 'X-HTTP-Method-Override': method } : {})
+                ...(method !== 'GET' && method !== 'POST' ? { 'X-HTTP-Method-Override': method } : {}),
             },
             credentials: 'same-origin',
-            body: method === 'GET' ? undefined : JSON.stringify(dataObj)
+            body: method === 'GET' ? undefined : JSON.stringify(dataObj),
         });
 
-        if (response.redirected) {
-             // Handle redirect if needed
-             window.location.href = response.url;
-             return;
-        }
+        // Fortify returns 200/204 on success when Accept: application/json is set.
+        // response.redirected happens when fetch follows a 302 (e.g. logout).
+        if (response.ok || response.redirected) {
+            const data = response.ok ? await response.json().catch(() => ({})) : {};
 
-        const data = await response.json().catch(() => ({}));
-
-        if (!response.ok) {
-            if (response.status === 422 && data.errors) {
-                // Laravel validation errors
-                for (const key in data.errors) {
-                    errors.value[key] = Array.isArray(data.errors[key]) ? data.errors[key][0] : data.errors[key];
-                }
-            } else if (response.status === 401 || response.status === 419) {
-                 window.location.reload();
-            }
-            emit('error', data);
-        } else {
             if (props.resetOnSuccess) {
-                // Just clear the password inputs or do a full reset
-                const inputs = form.querySelectorAll('input[type="password"]');
-                inputs.forEach((input) => {
+                form.querySelectorAll('input[type="password"]').forEach((input) => {
                     (input as HTMLInputElement).value = '';
                 });
             }
+
             emit('success', data);
-            
-            // If the endpoint usually redirects on success, we might need to check if there is a redirect path
+
             if (data?.redirect) {
-                router.push(data.redirect);
+                await router.push(data.redirect);
             }
+
+            return;
         }
+
+        // Error responses
+        const data = await response.json().catch(() => ({}));
+
+        if (response.status === 422 && data.errors) {
+            for (const key in data.errors) {
+                errors.value[key] = Array.isArray(data.errors[key])
+                    ? data.errors[key][0]
+                    : data.errors[key];
+            }
+        } else if (response.status === 419) {
+            // CSRF token expired — reload to get a fresh one
+            window.location.reload();
+
+            return;
+        }
+
+        emit('error', data);
     } catch (err) {
         emit('error', err);
     } finally {

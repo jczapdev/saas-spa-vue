@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Form, Head } from '@/lib/inertia-spa';
-import SecurityController from '@/actions/App/Http/Controllers/Settings/SecurityController';
+import PasswordController from '@/actions/App/Http/Controllers/System/Settings/PasswordController';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
 import type { Props as ManagePasskeysProps } from '@/components/ManagePasskeys.vue';
@@ -10,7 +10,6 @@ import ManageTwoFactor from '@/components/ManageTwoFactor.vue';
 import PasswordInput from '@/components/PasswordInput.vue';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { edit } from '@/routes/security';
 
 type Props = {
     passwordRules: string;
@@ -24,7 +23,7 @@ defineOptions({
         breadcrumbs: [
             {
                 title: 'Security settings',
-                href: edit(),
+                href: '/settings/security',
             },
         ],
     },
@@ -44,7 +43,7 @@ defineOptions({
         />
 
         <Form
-            v-bind="SecurityController.update.form()"
+            v-bind="PasswordController.update.form()"
             :options="{
                 preserveScroll: true,
             }"

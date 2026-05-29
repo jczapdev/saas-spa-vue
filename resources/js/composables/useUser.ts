@@ -45,27 +45,29 @@ export function useAuth() {
 
 // Initialize auth from server on app load
 export async function initializeAuth() {
+    // Reset ready so guards wait while we check auth state
+    authState.value.ready = false;
+
     try {
         await fetch('/sanctum/csrf-cookie', {
-            headers: { 'Accept': 'application/json' }
+            credentials: 'include',
+            headers: { Accept: 'application/json' },
         });
 
         const response = await fetch('/api/user', {
-            headers: {
-                'Accept': 'application/json',
-            },
+            headers: { 'Accept': 'application/json' },
             credentials: 'include',
         });
 
         if (response.ok) {
-            const user = await response.json();
-            const { setUser } = useAuth();
-            setUser(user);
+            const data = await response.json();
+            authState.value.user = data;
+        } else {
+            authState.value.user = null;
         }
     } catch {
-        // User is not authenticated
+        authState.value.user = null;
     } finally {
-        // Mark auth as ready regardless of success or failure
         authState.value.ready = true;
     }
 }
